@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build Outputs
+dist/
+src-tauri/target/
+src-tauri/gen/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# Project Specific
+build_*.txt
+build_error.txt
+crop_icon.ps1
+process_icon_large.ps1
+
+# Local environment files
+.env
+.env.local
+.env.*.local

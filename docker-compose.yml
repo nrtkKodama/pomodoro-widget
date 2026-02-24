@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/src-tauri/target
+    working_dir: /app
+    command: sleep infinity
+
+volumes:
+  cargo-cache:
+  target-cache:
