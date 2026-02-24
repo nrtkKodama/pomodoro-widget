@@ -28,8 +28,8 @@ function App() {
     const [timerState, timerActions] = useTimer(handlePhaseComplete);
 
     // --- Todo Actions ---
-    const addTodo = useCallback((text: string) => {
-        const newTodo: Todo = { id: generateId(), text, done: false };
+    const addTodo = useCallback((text: string, parentId?: string | null) => {
+        const newTodo: Todo = { id: generateId(), text, done: false, parentId: parentId || null };
         setTodos((prev) => [...prev, newTodo]);
     }, []);
 
@@ -55,13 +55,70 @@ function App() {
 
     const deleteTodo = useCallback(
         (id: string) => {
-            setTodos((prev) => prev.filter((t) => t.id !== id));
-            if (id === activeTaskId) {
+            // Also delete all descendants
+            const getDescendants = (parentId: string): string[] => {
+                const children = todos.filter(t => t.parentId === parentId);
+                return [...children.map(c => c.id), ...children.flatMap(c => getDescendants(c.id))];
+            };
+            const toDelete = [id, ...getDescendants(id)];
+
+            setTodos((prev) => prev.filter((t) => !toDelete.includes(t.id)));
+            if (toDelete.includes(activeTaskId as string)) {
                 setActiveTaskId(null);
             }
         },
-        [activeTaskId]
+        [activeTaskId, todos]
     );
+
+    const handleReorder = useCallback((draggedId: string, targetId: string | null, position: 'above' | 'below' | 'inside') => {
+        setTodos(prev => {
+            const dragIdx = prev.findIndex(t => t.id === draggedId);
+            if (dragIdx === -1) return prev;
+
+            const newTodos = [...prev];
+            const [draggedItem] = newTodos.splice(dragIdx, 1);
+
+            if (targetId === null) {
+                // Drop on background - move to end of top level
+                draggedItem.parentId = null;
+                newTodos.push(draggedItem);
+                return newTodos;
+            }
+
+            const targetIdx = newTodos.findIndex(t => t.id === targetId);
+            if (targetIdx === -1) {
+                // Should not happen if targetId is valid
+                newTodos.splice(dragIdx, 0, draggedItem);
+                return newTodos;
+            }
+
+            const targetItem = newTodos[targetIdx];
+
+            if (position === 'inside') {
+                // Avoid nesting inside itself or its children
+                const isDescendant = (parent: Todo, potentialChildId: string): boolean => {
+                    const children = prev.filter(t => t.parentId === parent.id);
+                    if (children.some(c => c.id === potentialChildId)) return true;
+                    return children.some(c => isDescendant(c, potentialChildId));
+                };
+
+                if (draggedId === targetId || isDescendant(draggedItem, targetId)) {
+                    newTodos.splice(dragIdx, 0, draggedItem);
+                    return newTodos;
+                }
+
+                draggedItem.parentId = targetId;
+                // Move to after the target (effectively at the end of its children list in a flat array)
+                newTodos.splice(targetIdx + 1, 0, draggedItem);
+            } else {
+                draggedItem.parentId = targetItem.parentId;
+                const insertIdx = position === 'above' ? targetIdx : targetIdx + 1;
+                newTodos.splice(insertIdx, 0, draggedItem);
+            }
+
+            return newTodos;
+        });
+    }, []);
 
     // --- Focus Mode ---
     const enterFocusMode = useCallback(() => {
@@ -92,7 +149,10 @@ function App() {
 
     // --- Normal Mode View ---
     return (
-        <div className={`app ${timerState.status !== "idle" ? "is-active" : ""}`}>
+        <div
+            className={`app ${timerState.status !== "idle" ? "is-active" : ""}`}
+            onDragOver={(e) => e.preventDefault()}
+        >
             <div className="drag-region" />
 
             {/* Header */}
@@ -155,6 +215,7 @@ function App() {
                 onToggle={toggleTodo}
                 onSetActive={setActiveTask}
                 onDelete={deleteTodo}
+                onReorder={handleReorder}
             />
 
             {/* Settings Overlay */}

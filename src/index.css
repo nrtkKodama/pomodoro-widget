@@ -448,8 +448,24 @@ label,
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   transition: all var(--transition-fast);
-  cursor: pointer;
+  cursor: grab;
   min-height: 36px;
+  user-select: none;
+  -webkit-user-drag: element;
+}
+
+/* Ensure children do not intercept drag events, which breaks dragover/drop */
+.task-item>* {
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for interactive elements */
+.task-item>button {
+  pointer-events: auto;
+}
+
+.task-item:active {
+  cursor: grabbing;
 }
 
 .task-item:hover {
@@ -534,6 +550,20 @@ label,
   color: var(--accent-danger);
 }
 
+.task-item.drag-over-above {
+  border-top: 2px solid var(--accent-work) !important;
+}
+
+.task-item.drag-over-below {
+  border-bottom: 2px solid var(--accent-work) !important;
+}
+
+.task-item.drag-over-inside {
+  background: rgba(108, 99, 255, 0.2) !important;
+  border-color: var(--accent-work) !important;
+  transform: translateX(4px);
+}
+
 /* --- Empty State --- */
 .empty-state {
   flex: 1;
@@ -554,6 +584,59 @@ label,
   font-size: 12px;
   font-weight: 400;
 }
+
+/* --- Inline Add Subtask --- */
+.inline-add-task {
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  animation: slideUp var(--transition-fast) ease;
+}
+
+.inline-add-task input {
+  height: 32px;
+  font-size: 12px;
+}
+
+/* --- Context Menu --- */
+.context-menu {
+  position: fixed;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border-glass-bright);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  min-width: 140px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: fadeIn var(--transition-fast) ease;
+}
+
+.context-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.context-menu-item:hover {
+  background: var(--bg-glass-light);
+}
+
+.context-menu-item .icon {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 
 /* --- Focus Mode Overlay --- */
 .focus-mode {

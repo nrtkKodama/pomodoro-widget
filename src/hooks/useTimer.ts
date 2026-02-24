@@ -10,6 +10,7 @@ export interface TimerSettings {
     longBreakDuration: number;
     sessionsBeforeLongBreak: number;
     notificationSound: NotificationSound;
+    volume: number;
 }
 
 export interface TimerState extends TimerSettings {
@@ -35,6 +36,7 @@ const DEFAULT_SETTINGS: TimerSettings = {
     longBreakDuration: 15 * 60,
     sessionsBeforeLongBreak: 4,
     notificationSound: "chime",
+    volume: 0.5,
 };
 
 export function useTimer(
@@ -93,7 +95,8 @@ export function useTimer(
                     // Phase complete
                     playNotificationSound(
                         phase === "work" ? "work" : "break",
-                        settings.notificationSound
+                        settings.notificationSound,
+                        settings.volume
                     );
                     onPhaseComplete?.(phase);
 

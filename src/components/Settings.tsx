@@ -16,6 +16,11 @@ export const Settings: React.FC<SettingsProps> = ({ state, actions, onClose }) =
             return;
         }
 
+        if (key === "volume") {
+            actions.updateSettings({ [key]: parseFloat(value) });
+            return;
+        }
+
         const numValue = parseInt(value, 10);
         if (isNaN(numValue)) return;
 
@@ -27,7 +32,7 @@ export const Settings: React.FC<SettingsProps> = ({ state, actions, onClose }) =
     };
 
     const handleTestSound = () => {
-        playNotificationSound("work", state.notificationSound);
+        playNotificationSound("work", state.notificationSound, state.volume);
     };
 
     return (
@@ -92,6 +97,19 @@ export const Settings: React.FC<SettingsProps> = ({ state, actions, onClose }) =
                                 Test
                             </button>
                         </div>
+                    </div>
+
+                    <div className="settings-group">
+                        <label>Sound Volume ({Math.round(state.volume * 100)}%)</label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={state.volume}
+                            onChange={(e) => handleChange("volume", e.target.value)}
+                            style={{ width: "100%", marginTop: 8 }}
+                        />
                     </div>
                 </div>
 
