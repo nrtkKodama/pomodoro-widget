@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTimer, TimerPhase } from "./hooks/useTimer";
 import { Timer } from "./components/Timer";
 import { TodoList, Todo } from "./components/TodoList";
@@ -12,9 +12,31 @@ function generateId(): string {
 
 function App() {
     // --- State ---
-    const [todos, setTodos] = useState<Todo[]>([]);
-    const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    const [todos, setTodos] = useState<Todo[]>(() => {
+        const saved = localStorage.getItem("pomodoro-todos");
+        try {
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+    const [activeTaskId, setActiveTaskId] = useState<string | null>(() => {
+        const saved = localStorage.getItem("pomodoro-active-task");
+        try {
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
+    });
     const [focusMode, setFocusMode] = useState(false);
+
+    useEffect(() => {
+        localStorage.setItem("pomodoro-todos", JSON.stringify(todos));
+    }, [todos]);
+
+    useEffect(() => {
+        localStorage.setItem("pomodoro-active-task", JSON.stringify(activeTaskId));
+    }, [activeTaskId]);
     const [showSettings, setShowSettings] = useState(false);
 
     // --- Timer ---
